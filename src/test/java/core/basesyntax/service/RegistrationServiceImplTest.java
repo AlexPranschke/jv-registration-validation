@@ -24,8 +24,12 @@ class RegistrationServiceImplTest {
         validUser.setLogin("validLogin");
         validUser.setPassword("validPassword");
         validUser.setAge(25);
-        Storage.people.add(validUser);
-        assertNotNull(validUser);
+        assertDoesNotThrow(() -> registrationService.register(validUser));
+        User registeredUser = registrationService.register(validUser);
+        assertNotNull(registeredUser);
+        assertEquals("validLogin", registeredUser.getLogin());
+        assertEquals("validPassword", registeredUser.getPassword());
+        assertEquals(25, registeredUser.getAge());
         assertEquals(1, Storage.people.size());
     }
 
