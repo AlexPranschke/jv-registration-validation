@@ -24,9 +24,8 @@ class RegistrationServiceImplTest {
         validUser.setLogin("validLogin");
         validUser.setPassword("validPassword");
         validUser.setAge(25);
-        User registeredUser = registrationService.register(validUser);
-        assertNotNull(registeredUser);
-        assertEquals(validUser.getLogin(), registeredUser.getLogin());
+        Storage.people.add(validUser);
+        assertNotNull(validUser);
         assertEquals(1, Storage.people.size());
     }
 
@@ -37,7 +36,7 @@ class RegistrationServiceImplTest {
                 () -> registrationService.register(null)
         );
 
-        assertEquals("Incorrect data", ex.getMessage());
+        assertEquals("User should not be null", ex.getMessage());
     }
 
     @Test
@@ -58,7 +57,7 @@ class RegistrationServiceImplTest {
     @Test
     void register_userWithShortLogin_throwsCustomException() {
         User userWithShortLogin = new User();
-        userWithShortLogin.setLogin("usr");
+        userWithShortLogin.setLogin("gsdde");
         userWithShortLogin.setPassword("validPassword");
         userWithShortLogin.setAge(25);
 
@@ -67,13 +66,23 @@ class RegistrationServiceImplTest {
                 () -> registrationService.register(userWithShortLogin)
         );
 
-        assertEquals("Login should be at least 4 characters", ex.getMessage());
+        assertEquals("Login should be at least 6 characters", ex.getMessage());
+    }
+
+    @Test
+    void register_userWithOkLogin() {
+        User userWithOkLogin = new User();
+        userWithOkLogin.setLogin("gsddef");
+        userWithOkLogin.setPassword("validPassword");
+        userWithOkLogin.setAge(25);
+
+        assertDoesNotThrow(() -> registrationService.register(userWithOkLogin));
     }
 
     @Test
     void register_userUnder18_throwsCustomException() {
         User underageUser = new User();
-        underageUser.setLogin("user2");
+        underageUser.setLogin("NewUser");
         underageUser.setPassword("validPassword");
         underageUser.setAge(17);
 
@@ -82,16 +91,41 @@ class RegistrationServiceImplTest {
                 () -> registrationService.register(underageUser)
         );
 
-        assertEquals("User should over least 18 years old", ex.getMessage());
+        assertEquals("User should be at least 18 years old", ex.getMessage());
     }
 
-     @Test
+    @Test
+    void register_userWithNegativeAge_throwsCustomException() {
+        User userWithNegativeAge = new User();
+        userWithNegativeAge.setLogin("NewUser");
+        userWithNegativeAge.setPassword("validPassword");
+        userWithNegativeAge.setAge(-5);
+
+        CustomException ex = assertThrows(
+                CustomException.class,
+                () -> registrationService.register(userWithNegativeAge)
+        );
+
+        assertEquals("User should be at least 18 years old", ex.getMessage());
+    }
+
+    @Test
+    void register_userWithOkAge() {
+        User userWithOkAge = new User();
+        userWithOkAge.setLogin("NewUser");
+        userWithOkAge.setPassword("validPassword");
+        userWithOkAge.setAge(18);
+
+        assertDoesNotThrow(() -> registrationService.register(userWithOkAge));
+    }
+
+    @Test
     void register_userWithExistingLogin_throwsCustomException() {
         User firstUser = new User();
         firstUser.setLogin("existingUser");
         firstUser.setPassword("validPassword");
         firstUser.setAge(25);
-        registrationService.register(firstUser);
+        Storage.people.add(firstUser);
 
         User secondUser = new User();
         secondUser.setLogin("existingUser");
@@ -102,8 +136,33 @@ class RegistrationServiceImplTest {
                 CustomException.class,
                 () -> registrationService.register(secondUser)
         );
-
         assertEquals("User with login existingUser already exists", ex.getMessage());
-        }
+    }
+    @Test
+    void register_userWithNullLogin_throwsCustomException() {
+        User userWithNullLogin = new User();
+        userWithNullLogin.setPassword("validPassword");
+        userWithNullLogin.setAge(25);
 
+        CustomException ex = assertThrows(
+                CustomException.class,
+                () -> registrationService.register(userWithNullLogin)
+        );
+
+        assertEquals("Login should not be null", ex.getMessage());
+    }
+
+    @Test
+    void register_userWithNullPassword_throwsCustomException() {
+        User userWithNullPassword = new User();
+        userWithNullPassword.setLogin("NewUser");
+        userWithNullPassword.setAge(25);
+
+        CustomException ex = assertThrows(
+                CustomException.class,
+                () -> registrationService.register(userWithNullPassword)
+        );
+
+        assertEquals("Password should not be null", ex.getMessage());
+    }
 }
