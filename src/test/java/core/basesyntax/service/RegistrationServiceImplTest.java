@@ -80,6 +80,16 @@ class RegistrationServiceImplTest {
     }
 
     @Test
+    void register_userWith8CharLogin_ok() {
+        User userWith8CharLogin = new User();
+        userWith8CharLogin.setLogin("gsddefgg");
+        userWith8CharLogin.setPassword("validPassword");
+        userWith8CharLogin.setAge(25);
+
+        assertDoesNotThrow(() -> registrationService.register(userWith8CharLogin));
+    }
+
+    @Test
     void register_userUnder18_throwsCustomException() {
         User underageUser = new User();
         underageUser.setLogin("NewUser");
@@ -117,6 +127,20 @@ class RegistrationServiceImplTest {
         userWithOkAge.setAge(18);
 
         assertDoesNotThrow(() -> registrationService.register(userWithOkAge));
+    }
+
+    @Test
+    void register_userWithNullAge_throwsCustomException() {
+        User userWithNullAge = new User();
+        userWithNullAge.setLogin("NewUser");
+        userWithNullAge.setPassword("validPassword");
+
+        CustomException ex = assertThrows(
+                CustomException.class,
+                () -> registrationService.register(userWithNullAge)
+        );
+
+        assertEquals("Age should not be null", ex.getMessage());
     }
 
     @Test
@@ -164,5 +188,15 @@ class RegistrationServiceImplTest {
         );
 
         assertEquals("Password should not be null", ex.getMessage());
+    }
+
+    @Test
+    void register_userWith8charPassword_ok() {
+        User user = new User();
+        user.setLogin("NewUser");
+        user.setPassword("12345678");
+        user.setAge(25);
+
+        assertDoesNotThrow(() -> registrationService.register(user));
     }
 }

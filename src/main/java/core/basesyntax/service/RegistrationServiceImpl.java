@@ -8,9 +8,9 @@ import core.basesyntax.model.User;
 public class RegistrationServiceImpl implements RegistrationService {
     private final StorageDao storageDao = new StorageDaoImpl();
 
-    private final int MIN_PASSWORD_LENGTH = 6;
-    private final int MIN_LOGIN_LENGTH = 6;
-    private final int MIN_AGE = 18;
+    private static int MIN_PASSWORD_LENGTH = 6;
+    private static int MIN_LOGIN_LENGTH = 6;
+    private static int MIN_AGE = 18;
 
     @Override
     public User register(User user) {
@@ -22,6 +22,9 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
         if (user.getPassword() == null) {
             throw new CustomException("Password should not be null");
+        }
+        if (user.getAge() == null) {
+            throw new CustomException("Age should not be null");
         }
         if (storageDao.get(user.getLogin()) != null) {
             throw new CustomException("User with login " + user.getLogin() + " already exists");
