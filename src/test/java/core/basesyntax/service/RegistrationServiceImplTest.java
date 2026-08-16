@@ -1,12 +1,15 @@
 package core.basesyntax.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import core.basesyntax.db.Storage;
-import core.basesyntax.exception.CustomException;
+import core.basesyntax.exception.RegistrationException;
 import core.basesyntax.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class RegistrationServiceImplTest {
 
@@ -24,19 +27,19 @@ class RegistrationServiceImplTest {
         validUser.setLogin("validLogin");
         validUser.setPassword("validPassword");
         validUser.setAge(25);
-        assertDoesNotThrow(() -> registrationService.register(validUser));
-        User registeredUser = registrationService.register(validUser);
+
+        User registeredUser = assertDoesNotThrow(() -> registrationService.register(validUser));
+
         assertNotNull(registeredUser);
-        assertEquals("validLogin", registeredUser.getLogin());
-        assertEquals("validPassword", registeredUser.getPassword());
-        assertEquals(25, registeredUser.getAge());
+        assertEquals(validUser, registeredUser);
         assertEquals(1, Storage.people.size());
+        assertEquals(validUser, Storage.people.get(0));
     }
 
     @Test
-    void register_nullUser_throwsCustomException() {
-        CustomException ex = assertThrows(
-                CustomException.class,
+    void register_nullUser_notOk() {
+        RegistrationException ex = assertThrows(
+                RegistrationException.class,
                 () -> registrationService.register(null)
         );
 
@@ -44,14 +47,14 @@ class RegistrationServiceImplTest {
     }
 
     @Test
-    void register_userWithShortPassword_throwsCustomException() {
+    void register_shortPassword_notOk() {
         User userWithShortPassword = new User();
         userWithShortPassword.setLogin("user1");
         userWithShortPassword.setPassword("123");
         userWithShortPassword.setAge(25);
 
-        CustomException ex = assertThrows(
-                CustomException.class,
+        RegistrationException ex = assertThrows(
+                RegistrationException.class,
                 () -> registrationService.register(userWithShortPassword)
         );
 
@@ -59,14 +62,14 @@ class RegistrationServiceImplTest {
     }
 
     @Test
-    void register_userWithShortLogin_throwsCustomException() {
+    void register_shortLogin_notOk() {
         User userWithShortLogin = new User();
         userWithShortLogin.setLogin("gsdde");
         userWithShortLogin.setPassword("validPassword");
         userWithShortLogin.setAge(25);
 
-        CustomException ex = assertThrows(
-                CustomException.class,
+        RegistrationException ex = assertThrows(
+                RegistrationException.class,
                 () -> registrationService.register(userWithShortLogin)
         );
 
@@ -74,17 +77,7 @@ class RegistrationServiceImplTest {
     }
 
     @Test
-    void register_userWithOkLogin() {
-        User userWithOkLogin = new User();
-        userWithOkLogin.setLogin("gsddef");
-        userWithOkLogin.setPassword("validPassword");
-        userWithOkLogin.setAge(25);
-
-        assertDoesNotThrow(() -> registrationService.register(userWithOkLogin));
-    }
-
-    @Test
-    void register_userWith8CharLogin_ok() {
+    void register_8CharLogin_ok() {
         User userWith8CharLogin = new User();
         userWith8CharLogin.setLogin("gsddefgg");
         userWith8CharLogin.setPassword("validPassword");
@@ -94,14 +87,14 @@ class RegistrationServiceImplTest {
     }
 
     @Test
-    void register_userUnder18_throwsCustomException() {
+    void register_userUnder18_notOk() {
         User underageUser = new User();
         underageUser.setLogin("NewUser");
         underageUser.setPassword("validPassword");
         underageUser.setAge(17);
 
-        CustomException ex = assertThrows(
-                CustomException.class,
+        RegistrationException ex = assertThrows(
+                RegistrationException.class,
                 () -> registrationService.register(underageUser)
         );
 
@@ -109,14 +102,14 @@ class RegistrationServiceImplTest {
     }
 
     @Test
-    void register_userWithNegativeAge_throwsCustomException() {
+    void register_NegativeAge_notOk() {
         User userWithNegativeAge = new User();
         userWithNegativeAge.setLogin("NewUser");
         userWithNegativeAge.setPassword("validPassword");
         userWithNegativeAge.setAge(-5);
 
-        CustomException ex = assertThrows(
-                CustomException.class,
+        RegistrationException ex = assertThrows(
+                RegistrationException.class,
                 () -> registrationService.register(userWithNegativeAge)
         );
 
@@ -124,7 +117,7 @@ class RegistrationServiceImplTest {
     }
 
     @Test
-    void register_userWithOkAge() {
+    void register_Age18_ok() {
         User userWithOkAge = new User();
         userWithOkAge.setLogin("NewUser");
         userWithOkAge.setPassword("validPassword");
@@ -134,13 +127,13 @@ class RegistrationServiceImplTest {
     }
 
     @Test
-    void register_userWithNullAge_throwsCustomException() {
+    void register_NullAge_notOk() {
         User userWithNullAge = new User();
         userWithNullAge.setLogin("NewUser");
         userWithNullAge.setPassword("validPassword");
 
-        CustomException ex = assertThrows(
-                CustomException.class,
+        RegistrationException ex = assertThrows(
+                RegistrationException.class,
                 () -> registrationService.register(userWithNullAge)
         );
 
@@ -148,7 +141,45 @@ class RegistrationServiceImplTest {
     }
 
     @Test
-    void register_userWithExistingLogin_throwsCustomException() {
+    void register_nullLogin_notOk() {
+        User userWithNullLogin = new User();
+        userWithNullLogin.setPassword("validPassword");
+        userWithNullLogin.setAge(25);
+
+        RegistrationException ex = assertThrows(
+                RegistrationException.class,
+                () -> registrationService.register(userWithNullLogin)
+        );
+
+        assertEquals("Login should not be null", ex.getMessage());
+    }
+
+    @Test
+    void register_nullPassword_notOk() {
+        User userWithNullPassword = new User();
+        userWithNullPassword.setLogin("NewUser");
+        userWithNullPassword.setAge(25);
+
+        RegistrationException ex = assertThrows(
+                RegistrationException.class,
+                () -> registrationService.register(userWithNullPassword)
+        );
+
+        assertEquals("Password should not be null", ex.getMessage());
+    }
+
+    @Test
+    void register_8charPassword_ok() {
+        User user = new User();
+        user.setLogin("NewUser");
+        user.setPassword("12345678");
+        user.setAge(25);
+
+        assertDoesNotThrow(() -> registrationService.register(user));
+    }
+
+    @Test
+    void register_ExistingLogin_notOk() {
         User firstUser = new User();
         firstUser.setLogin("existingUser");
         firstUser.setPassword("validPassword");
@@ -160,47 +191,10 @@ class RegistrationServiceImplTest {
         secondUser.setPassword("anotherPassword");
         secondUser.setAge(30);
 
-        CustomException ex = assertThrows(
-                CustomException.class,
+        RegistrationException ex = assertThrows(
+                RegistrationException.class,
                 () -> registrationService.register(secondUser)
         );
         assertEquals("User with login existingUser already exists", ex.getMessage());
-    }
-    @Test
-    void register_userWithNullLogin_throwsCustomException() {
-        User userWithNullLogin = new User();
-        userWithNullLogin.setPassword("validPassword");
-        userWithNullLogin.setAge(25);
-
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> registrationService.register(userWithNullLogin)
-        );
-
-        assertEquals("Login should not be null", ex.getMessage());
-    }
-
-    @Test
-    void register_userWithNullPassword_throwsCustomException() {
-        User userWithNullPassword = new User();
-        userWithNullPassword.setLogin("NewUser");
-        userWithNullPassword.setAge(25);
-
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> registrationService.register(userWithNullPassword)
-        );
-
-        assertEquals("Password should not be null", ex.getMessage());
-    }
-
-    @Test
-    void register_userWith8charPassword_ok() {
-        User user = new User();
-        user.setLogin("NewUser");
-        user.setPassword("12345678");
-        user.setAge(25);
-
-        assertDoesNotThrow(() -> registrationService.register(user));
     }
 }
